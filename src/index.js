@@ -1,3 +1,5 @@
+const envSets = require('./envSets.js')
+
 const digit = /[0-9]|\./
 const symbol = /\+|\-|\/|\*|\^|\%/
 const variable = /[a-zA-Z]/
@@ -247,6 +249,18 @@ const execGrouped = (item, varspace = {}, functionSpace = {}) => {
 const exec = (math, context = {
 	'vars': {},
 	'functions': {}
-}) => execGrouped(groupOperations(processTokens(tokenize(math))), context.vars, context.functions)
+}, envLibs = ['trig']) => {
+	if (typeof context.vars !== 'object') context.vars = {}
+	if (typeof context.functions !== 'object') context.functions = {}
+
+	for (let i = 0; i < envLibs.length; i++) {
+		const set = envSets[envLibs[i]]
+
+		Object.assign(context.functions, set.functions)
+		Object.assign(context.vars, set.vars)
+	}
+
+	return execGrouped(groupOperations(processTokens(tokenize(math))), context.vars, context.functions)
+}
 
 module.exports = { exec, tokenize, processTokens, groupOperations, execGrouped }
