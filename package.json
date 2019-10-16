@@ -1,0 +1,20 @@
+{
+  "name": "mathex",
+  "version": "1.0.0",
+  "description": "Full Node algebra processing and execution library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethanent/mathex.git"
+  },
+  "keywords": [],
+  "author": "Ethan Davis",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethanent/mathex/issues"
+  },
+  "homepage": "https://github.com/ethanent/mathex#readme"
+}
