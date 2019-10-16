@@ -1,5 +1,3 @@
-const getIndexes = (arr, val) => arr.map((v, i) => [v, i]).filter((e) => e[0] === val).map((e) => e[1])
-
 const digit = /[0-9]|\./
 const symbol = /\+|\-|\/|\*|\^|\%/
 const variable = /[a-zA-Z]/
