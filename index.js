@@ -6,6 +6,17 @@ const digit = /[0-9]|\./
 const symbol = /\+|\-|\/|\*|\^/
 const variable = /[a-zA-Z]/
 
+const groupTests = [
+	{
+		'test': (v) => digit.test(v),
+		'finalize': Number
+	},
+	{
+		'test': (v) => variable.test(v),
+		'finalize': (value) => value
+	}
+]
+
 const actionOrder = [
 	['^'],
 	['*', '/'],
@@ -18,22 +29,31 @@ const tokenize = (txt) => {
 	const nextSegs = []
 
 	for (let i = 0; i < segs.length; i++) {
-		if (digit.test(segs[i])) {
-			// Is number
+		let grouped = false
 
-			let testI = i + 1
+		for (let b = 0; b < groupTests.length; b++) {
+			const currentGroupTest = groupTests[b]
 
-			while (testI < segs.length && digit.test(segs[testI])) {
-				testI++
+			if (currentGroupTest.test(segs[i])) {
+				grouped = true
+
+				// Should be grouped if possible
+
+				let testI = i + 1
+
+				while (testI < segs.length && currentGroupTest.test(segs[testI])) {
+					testI++
+				}
+
+				const lastDigitI = testI
+
+				nextSegs.push(currentGroupTest.finalize(segs.slice(i, lastDigitI).join('')))
+
+				i = lastDigitI - 1
 			}
-
-			const lastDigitI = testI
-
-			nextSegs.push(Number(segs.slice(i, lastDigitI).join('')))
-
-			i = lastDigitI - 1
 		}
-		else {
+
+		if (grouped === false) {
 			nextSegs.push(segs[i])
 		}
 	}
@@ -55,9 +75,18 @@ const processTokens = (toks) => {
 				if (building.type === 'parenObject') {
 					building.contents.push(val)
 				}
+				else if (building.type === 'function') {
+					if (val.type === 'parenObject') {
+						building.contents = val.contents
+
+						// When parenObject exited, exit back to parent of function
+						val.parent = building.parent
+					}
+					else throw new Error('Expected parenObject for function, instead received \'' + val.type + '\'.')
+				}
 				else throw new Error('Unexpected type for building \'' + building.type + '\'.')
 
-				if (val.type === 'parenObject') {
+				if (val.insertable === true) {
 					building = val
 				}
 			}
@@ -96,11 +125,22 @@ const processTokens = (toks) => {
 			})
 		}
 		else if (variable.test(toks[i])) {
-			insert({
-				'type': 'variable',
+			if (toks[i].length === 1) {
+				insert({
+					'type': 'variable',
+					'name': toks[i],
+					'insertable': false
+				})
+			}
+			else insert({
+				'type': 'function',
 				'name': toks[i],
-				'insertable': false
+				'contents': [],
+				'insertable': true
 			})
+		}
+		else if (toks[i] === ',') {
+
 		}
 		else {
 			console.log('Unprocessed token \'' + toks[i] + '\' while processing')
@@ -117,6 +157,11 @@ const groupOperations = (parsed) => {
 		const item = parsed[0]
 
 		if (item.type === 'number' || item.type === 'variable') {
+			return item
+		}
+		else if (item.type === 'function') {
+			item.args = groupOperations(item.contents)
+
 			return item
 		}
 		else if (item.type === 'parenObject') {
@@ -154,6 +199,8 @@ const groupOperations = (parsed) => {
 }
 
 const execGrouped = (item, varspace = {}, functionSpace = {}) => {
+	const recurseExec = (itemB) => execGrouped(itemB, varspace, functionSpace)
+
 	if (item.type === 'number') {
 		return item.value
 	}
@@ -163,9 +210,20 @@ const execGrouped = (item, varspace = {}, functionSpace = {}) => {
 		}
 		else throw new Error('Undefined variable \'' + item.name + '\' while executing.')
 	}
+	else if (item.type === 'function') {
+		if (typeof functionSpace[item.name] === 'function') {
+			const res = functionSpace[item.name].apply(null, [recurseExec(item.args)])
+
+			if (typeof res === 'number' && !isNaN(res)) {
+				return res
+			}
+			else throw new Error('Bad function result \'' + res + '\' is of type ' + (typeof res) + ', not number.')
+		}
+		else throw new Error('Function \'' + item.name + '\' does not exist, execution failed.')
+	}
 	else if (item.type === 'operation') {
-		const valueA = execGrouped(item.between[0], varspace)
-		const valueB = execGrouped(item.between[1], varspace)
+		const valueA = recurseExec(item.between[0])
+		const valueB = recurseExec(item.between[1])
 
 		if (item.action === '^') {
 			return Math.pow(valueA, valueB)
@@ -192,5 +250,4 @@ const exec = (math, context = {
 	'functions': {}
 }) => execGrouped(groupOperations(processTokens(tokenize(math))), context.vars, context.functions)
 
-module.exports = { exec }
-
+module.exports = { exec, tokenize, processTokens, groupOperations, execGrouped }
