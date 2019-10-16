@@ -1,9 +1,7 @@
-const inspect = (a) => require('util').inspect(a, {'depth': 10})
-
 const getIndexes = (arr, val) => arr.map((v, i) => [v, i]).filter((e) => e[0] === val).map((e) => e[1])
 
 const digit = /[0-9]|\./
-const symbol = /\+|\-|\/|\*|\^/
+const symbol = /\+|\-|\/|\*|\^|\%/
 const variable = /[a-zA-Z]/
 
 const groupTests = [
@@ -19,7 +17,7 @@ const groupTests = [
 
 const actionOrder = [
 	['^'],
-	['*', '/'],
+	['*', '/', '%'],
 	['+', '-']
 ]
 
@@ -125,18 +123,18 @@ const processTokens = (toks) => {
 			})
 		}
 		else if (variable.test(toks[i])) {
-			if (toks[i].length === 1) {
+			if (i + 1 < toks.length && toks[i + 1] === '(') {
 				insert({
-					'type': 'variable',
+					'type': 'function',
 					'name': toks[i],
-					'insertable': false
+					'contents': [],
+					'insertable': true
 				})
 			}
 			else insert({
-				'type': 'function',
+				'type': 'variable',
 				'name': toks[i],
-				'contents': [],
-				'insertable': true
+				'insertable': false
 			})
 		}
 		else if (toks[i] === ',') {
@@ -233,6 +231,9 @@ const execGrouped = (item, varspace = {}, functionSpace = {}) => {
 		}
 		else if (item.action === '/') {
 			return valueA / valueB
+		}
+		else if (item.action === '%') {
+			return valueA % valueB
 		}
 		else if (item.action === '+') {
 			return valueA + valueB
