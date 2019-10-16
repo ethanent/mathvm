@@ -143,7 +143,7 @@ const processTokens = (toks) => {
 			building.contents.push([])
 		}
 		else {
-			console.log('Unprocessed token \'' + toks[i] + '\' while processing')
+			throw new Error('Bad token \'' + toks[i] + '\' while processing')
 		}
 	}
 
@@ -160,7 +160,6 @@ const groupOperations = (parsed) => {
 			return item
 		}
 		else if (item.type === 'function') {
-			console.log(item.contents)
 			item.args = item.contents.map((c) => groupOperations(c))
 
 			return item
@@ -213,7 +212,6 @@ const execGrouped = (item, varspace = {}, functionSpace = {}) => {
 	}
 	else if (item.type === 'function') {
 		if (typeof functionSpace[item.name] === 'function') {
-			console.log(item.args)
 			const res = functionSpace[item.name].apply(null, item.args.map((arg) => recurseExec(arg)))
 
 			if (typeof res === 'number' && !isNaN(res)) {
