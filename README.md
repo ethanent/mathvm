@@ -45,3 +45,16 @@ mathvm.exec('5 * add(x, 3)', {
 })
 // => 25
 ```
+
+## EnvSets
+
+```js
+mathvm.exec('sin(pi / 2)')
+// => 1
+
+mathvm.exec('sin(pi / 2)', {}, [])
+// Errors, function sin does not exist
+
+mathvm.exec('sin(pi / 2)', {}, ['trig'])
+// => 1
+```
