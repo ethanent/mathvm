@@ -1,20 +1,20 @@
 {
-  "name": "mathex",
+  "name": "mathvm",
   "version": "1.0.0",
-  "description": "Full Node algebra processing and execution library",
+  "description": "Node math processing and execution VM",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethanent/mathex.git"
+    "url": "git+https://github.com/ethanent/mathvm.git"
   },
   "keywords": [],
   "author": "Ethan Davis",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ethanent/mathex/issues"
+    "url": "https://github.com/ethanent/mathvm/issues"
   },
-  "homepage": "https://github.com/ethanent/mathex#readme"
+  "homepage": "https://github.com/ethanent/mathvm"
 }
