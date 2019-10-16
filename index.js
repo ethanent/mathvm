@@ -76,13 +76,11 @@ const processTokens = (toks) => {
 					building.contents.push(val)
 				}
 				else if (building.type === 'function') {
-					if (val.type === 'parenObject') {
-						building.contents = val.contents
-
-						// When parenObject exited, exit back to parent of function
-						val.parent = building.parent
+					if (building.contents.length === 0) {
+						building.contents.push([])
 					}
-					else throw new Error('Expected parenObject for function, instead received \'' + val.type + '\'.')
+
+					building.contents[building.contents.length - 1].push(val)
 				}
 				else throw new Error('Unexpected type for building \'' + building.type + '\'.')
 
@@ -101,11 +99,13 @@ const processTokens = (toks) => {
 		}
 
 		if (toks[i] === '(') {
-			insert({
-				'type': 'parenObject',
-				'contents': [],
-				'insertable': true
-			})
+			if (building === null || building.type !== 'function') {
+				insert({
+					'type': 'parenObject',
+					'contents': [],
+					'insertable': true
+				})
+			}
 		}
 		else if (toks[i] === ')') {
 			building = building.parent
@@ -140,7 +140,7 @@ const processTokens = (toks) => {
 			})
 		}
 		else if (toks[i] === ',') {
-
+			building.contents.push([])
 		}
 		else {
 			console.log('Unprocessed token \'' + toks[i] + '\' while processing')
@@ -160,7 +160,8 @@ const groupOperations = (parsed) => {
 			return item
 		}
 		else if (item.type === 'function') {
-			item.args = groupOperations(item.contents)
+			console.log(item.contents)
+			item.args = item.contents.map((c) => groupOperations(c))
 
 			return item
 		}
@@ -212,7 +213,8 @@ const execGrouped = (item, varspace = {}, functionSpace = {}) => {
 	}
 	else if (item.type === 'function') {
 		if (typeof functionSpace[item.name] === 'function') {
-			const res = functionSpace[item.name].apply(null, [recurseExec(item.args)])
+			console.log(item.args)
+			const res = functionSpace[item.name].apply(null, item.args.map((arg) => recurseExec(arg)))
 
 			if (typeof res === 'number' && !isNaN(res)) {
 				return res
