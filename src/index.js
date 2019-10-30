@@ -143,6 +143,20 @@ const processTokens = (toks) => {
 		else {
 			throw new Error('Bad token \'' + toks[i] + '\' while processing')
 		}
+
+		// Insert implied -1 * for negative numbers
+
+		for (let i = 0; i < build.length - 1; i++) {
+			if ((i === 0 || build[i - 1].type === 'rawSymbol') && build[i].type === 'rawSymbol' && build[i].value === '-' && build[i + 1].type === 'number') {
+				build.splice(i, 0, {
+					'type': 'number',
+					'value': -1,
+					'insertable': false
+				})
+
+				build[i + 1].value = '*'
+			}
+		}
 	}
 
 	return build
