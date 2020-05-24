@@ -31,7 +31,7 @@ mathvm.exec('7 + x ^ 2', {
 
 ```js
 mathvm.exec('asin(cos(pi))')
-// => -Pi
+// => -Pi/2
 ```
 
 ```js
